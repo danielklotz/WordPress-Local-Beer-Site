@@ -1,0 +1,3 @@
+[submodule "wp-content/themes/bootstrap"]
+	path = wp-content/themes/bootstrap
+	url = git@github.com:rachelbaker/bootstrapwp-Twitter-Bootstrap-for-WordPress.git
