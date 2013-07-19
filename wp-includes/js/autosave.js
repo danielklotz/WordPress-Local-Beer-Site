@@ -144,7 +144,11 @@ jQuery(document).ready( function($) {
 	// When connection is lost, keep user from submitting changes.
 	$(document).on('heartbeat-connection-lost.autosave', function( e, error ) {
 		if ( 'timeout' === error ) {
-			$('#lost-connection-notice').show();
+			var notice = $('#lost-connection-notice');
+			if ( ! wp.autosave.local.hasStorage ) {
+				notice.find('.hide-if-no-sessionstorage').hide();
+			}
+			notice.show();
 			autosave_disable_buttons();
 		}
 	}).on('heartbeat-connection-restored.autosave', function() {
@@ -242,7 +246,7 @@ function autosave_loading() {
 
 function autosave_enable_buttons() {
 	jQuery(document).trigger('autosave-enable-buttons');
-	if ( ! wp.heartbeat.connectionLost ) {
+	if ( ! wp.heartbeat.hasConnectionError() ) {
 		// delay that a bit to avoid some rare collisions while the DOM is being updated.
 		setTimeout(function(){
 			var parent = jQuery('#submitpost');
@@ -520,11 +524,12 @@ wp.autosave.local = {
 	init: function( settings ) {
 		var self = this;
 
-		// Run only on the Add/Edit Post screens and in browsers that have sessionStorage
-		if ( 'post' != window.pagenow || ! this.checkStorage() )
+		// Check if the browser supports sessionStorage and editor.js is loaded
+		if ( ! this.checkStorage() || typeof switchEditors == 'undefined' )
 			return;
-		// editor.js has to be loaded before autosave.js
-		if ( typeof switchEditors == 'undefined' )
+
+		// Don't run if the post type supports neither 'editor' (textarea#content) nor 'excerpt'.
+		if ( ! $('#content').length && ! $('#excerpt').length )
 			return;
 
 		if ( settings )
